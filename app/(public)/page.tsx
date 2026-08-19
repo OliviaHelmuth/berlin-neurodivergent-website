@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { DonateButton } from "@/components/layout/DonateButton";
+import { EventCard } from "@/components/events/EventCard";
+import { getEvents } from "@/lib/db/queries/events";
 
 const cards = [
   {
@@ -20,7 +22,9 @@ const cards = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const upcoming = await getEvents({ when: "upcoming", sort: "asc", limit: 3 });
+
   return (
     <>
       <section className="border-b border-zinc-200 bg-gradient-to-b from-teal-50 to-white py-20 dark:border-zinc-800 dark:from-teal-950/20 dark:to-black">
@@ -63,13 +67,20 @@ export default function HomePage() {
       <section className="border-t border-zinc-200 py-16 dark:border-zinc-800">
         <Container>
           <h2 className="mb-4 text-2xl font-semibold text-zinc-900 dark:text-zinc-50">Upcoming events</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Event data isn&apos;t wired up yet — this section will pull live from the database once the
-            events schema and admin panel are in place.{" "}
-            <Link href="/events" className="text-teal-700 underline dark:text-teal-400">
-              See the full events page →
-            </Link>
-          </p>
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              No upcoming events posted right now — check back soon.
+            </p>
+          ) : (
+            <div className="mb-6 grid gap-4 sm:grid-cols-3">
+              {upcoming.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          )}
+          <Link href="/events" className="text-sm text-teal-700 underline dark:text-teal-400">
+            See the full events page →
+          </Link>
         </Container>
       </section>
     </>

@@ -8,6 +8,7 @@ config({ path: ".env.local" });
 import { eq, sql as rawSql } from "drizzle-orm";
 import { events, eventSeries } from "../lib/db/schema";
 import { eventsSeed, type SeedEvent } from "./data/events-seed";
+import { upcomingEventsSeed, type UpcomingSeedEvent } from "./data/upcoming-events-seed";
 import type { db as DbType } from "../lib/db";
 
 // Recurring series called out in docs/site-audit.md §3 ("Recurring series
@@ -39,14 +40,20 @@ function slugify(input: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-// Times weren't captured in the audit (list view only shows the date) — this
-// infers 18:00 local Berlin time and approximates CET/CEST by month, since
-// this is placeholder seed data, not confirmed schedule data.
-function startAtFor(dateISO: string) {
+// Approximates CET/CEST by month (late-Mar to late-Oct in reality) rather
+// than a full IANA tz lookup — fine for seed data, matches lib/events/time.ts.
+function dateTimeToUTC(dateISO: string, time: string) {
   const month = Number(dateISO.slice(5, 7));
-  const isCEST = month >= 4 && month <= 10; // late-Mar to late-Oct in reality; month-level approximation is fine for seed data
+  const isCEST = month >= 4 && month <= 10;
   const offset = isCEST ? "+02:00" : "+01:00";
-  return new Date(`${dateISO}T18:00:00${offset}`);
+  return new Date(`${dateISO}T${time}:00${offset}`);
+}
+
+// Times weren't captured in the audit (list view only shows the date) — this
+// infers 18:00 local Berlin time, since this is placeholder seed data, not
+// confirmed schedule data.
+function startAtFor(dateISO: string) {
+  return dateTimeToUTC(dateISO, "18:00");
 }
 
 async function upsertSeries(db: typeof DbType, name: string, cache: Map<string, string>) {
@@ -100,6 +107,44 @@ async function seedEvent(db: typeof DbType, raw: SeedEvent, seriesCache: Map<str
     });
 }
 
+async function seedUpcomingEvent(db: typeof DbType, raw: UpcomingSeedEvent, seriesCache: Map<string, string>) {
+  const match = matchSeries(raw.title);
+  const seriesId = match ? await upsertSeries(db, match.name, seriesCache) : null;
+  const sourceKey = `wix-live:${raw.date}:${slugify(raw.title)}`;
+  const slug = `${slugify(raw.title)}-${raw.date}`;
+  const startAt = dateTimeToUTC(raw.date, raw.startTime);
+  const endAt = raw.endTime ? dateTimeToUTC(raw.date, raw.endTime) : null;
+
+  await db
+    .insert(events)
+    .values({
+      slug,
+      title: raw.title,
+      emoji: raw.emoji ?? null,
+      description: "Imported from the org's live site listing; full description pending admin review.",
+      venueName: raw.venueName,
+      venueAddress: raw.venueAddress ?? null,
+      startAt,
+      endAt,
+      eventSeriesId: seriesId,
+      status: "published",
+      sourceKey,
+    })
+    .onConflictDoUpdate({
+      target: events.sourceKey,
+      set: {
+        title: raw.title,
+        emoji: raw.emoji ?? null,
+        venueName: raw.venueName,
+        venueAddress: raw.venueAddress ?? null,
+        startAt,
+        endAt,
+        eventSeriesId: seriesId,
+        updatedAt: rawSql`now()`,
+      },
+    });
+}
+
 async function main() {
   // Dynamic import: a static `import { db } from "../lib/db"` at the top of
   // this file would be hoisted above the dotenv config() call above (ES
@@ -113,6 +158,11 @@ async function main() {
 
   for (const raw of eventsSeed) {
     await seedEvent(db, raw, seriesCache);
+    count++;
+  }
+
+  for (const raw of upcomingEventsSeed) {
+    await seedUpcomingEvent(db, raw, seriesCache);
     count++;
   }
 

@@ -12,6 +12,11 @@ Update checkboxes as you go, not in a batch at the end of a session.
 - [x] Run initial migration
 - [x] `scripts/seed-events.ts` — import the 63 historical events from
       `docs/site-audit.md` §3
+- [x] `scripts/data/upcoming-events-seed.ts` — one-time top-up of the 7
+      currently-live upcoming events (title/exact time/venue only, hand-
+      captured from the live site 2026-08-19), seeded via the same idempotent
+      script; new events go through the admin panel from here on, not further
+      scraping
 
 ## Admin panel
 
@@ -26,7 +31,13 @@ Update checkboxes as you go, not in a batch at the end of a session.
 
 ## Public site
 
-- [ ] `/news` list + article detail pages once the articles schema exists
+- [x] `/events` list (upcoming/past, derived from `start_at`) + `/events/[slug]`
+      detail page, wired to the DB
+- [x] `/events` filter/sort bar — upcoming (default) vs. past, sort by date
+      asc/desc, via `?when=&sort=` search params; same bar reused on
+      `/admin/events`
+- [x] `/news` list + `/news/[slug]` article detail pages, wired to the DB
+- [x] Homepage "Upcoming events" section pulls live data
 - [ ] Swap partner logo placeholders for real files once the org supplies
       them
 

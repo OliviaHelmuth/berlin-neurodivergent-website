@@ -11,7 +11,9 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx scripts/seed-events.ts",
-    "db:create-admin": "tsx scripts/create-admin.ts"
+    "db:create-admin": "tsx scripts/create-admin.ts",
+    "db:check-range": "tsx scripts/check-events-range.ts",
+    "db:check-upcoming": "tsx scripts/check-upcoming-events.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

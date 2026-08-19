@@ -1,13 +1,38 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { events, eventSeries } from "@/lib/db/schema";
 import { duplicateEvent, deleteEvent, toggleEventStatus } from "@/app/admin/actions/events";
 import { DeleteButton } from "@/components/admin/DeleteButton";
+import { EventsFilterBar } from "@/components/events/EventsFilterBar";
+import {
+  defaultSortFor,
+  eventOrderBy,
+  eventWhenCondition,
+  type EventsSort,
+  type EventsWhen,
+} from "@/lib/db/queries/events";
 
 export const metadata = { title: "Events" };
 
-export default async function AdminEventsPage() {
+function parseWhen(value?: string): EventsWhen {
+  return value === "past" ? "past" : "upcoming";
+}
+
+function parseSort(value: string | undefined, when: EventsWhen): EventsSort {
+  if (value === "asc" || value === "desc") return value;
+  return defaultSortFor(when);
+}
+
+export default async function AdminEventsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ when?: string; sort?: string }>;
+}) {
+  const params = await searchParams;
+  const when = parseWhen(params.when);
+  const sort = parseSort(params.sort, when);
+
   const rows = await db
     .select({
       id: events.id,
@@ -18,7 +43,8 @@ export default async function AdminEventsPage() {
     })
     .from(events)
     .leftJoin(eventSeries, eq(events.eventSeriesId, eventSeries.id))
-    .orderBy(desc(events.startAt));
+    .where(eventWhenCondition(when))
+    .orderBy(eventOrderBy(sort));
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,6 +57,8 @@ export default async function AdminEventsPage() {
           New event
         </Link>
       </div>
+
+      <EventsFilterBar basePath="/admin/events" when={when} sort={sort} />
 
       <div className="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-800">
         <table className="w-full text-left text-sm">
@@ -88,7 +116,7 @@ export default async function AdminEventsPage() {
             {rows.length === 0 && (
               <tr>
                 <td colSpan={5} className="px-4 py-6 text-center text-zinc-500 dark:text-zinc-500">
-                  No events yet.
+                  {when === "upcoming" ? "No upcoming events." : "No past events."}
                 </td>
               </tr>
             )}
