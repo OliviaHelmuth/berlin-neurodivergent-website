@@ -72,15 +72,16 @@ own code/config. If none settle it, say so rather than guessing.
 
 ## Deployment state
 
-Nothing has been pushed to GitHub or connected to Vercel yet — everything so
-far is local-only. Confirm with the user before doing either; don't assume a
-prior "yes" carries forward.
+Pushed to GitHub: `OliviaHelmuth/berlin-neurodivergent-website` (public).
+Not connected to Vercel yet. Confirm with the user before deploying; don't
+assume a prior "yes" carries forward.
 
 ## Agent skills
 
 ### Issue tracker
 
-Issues tracked as GitHub Issues via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Tasks tracked as a single flat checklist in `tasks/TASKS.md` — not GitHub
+Issues (tried, then deliberately removed). See `docs/agents/issue-tracker.md`.
 
 ### Domain docs
 
