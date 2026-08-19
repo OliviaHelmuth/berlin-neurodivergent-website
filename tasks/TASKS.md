@@ -15,13 +15,14 @@ Update checkboxes as you go, not in a batch at the end of a session.
 
 ## Admin panel
 
-- [ ] Auth.js (Credentials provider + JWT session) guarding `/admin/*`
-- [ ] `scripts/create-admin.ts` CLI to create the first staff login
-- [ ] `/admin/events` — create/edit/delete, draft↔published toggle,
+- [x] Auth.js (Credentials provider + JWT session) guarding `/admin/*`
+- [x] `scripts/create-admin.ts` CLI to create the first staff login
+- [x] `/admin/events` — create/edit/delete, draft↔published toggle,
       "duplicate" action for recurring series
-- [ ] `/admin/articles` — same, for News and Updates posts
-- [ ] Server Actions + `revalidatePath` so edits show up on the public site
-      immediately
+- [x] `/admin/articles` — same, for News and Updates posts
+- [x] Server Actions + `revalidatePath` so edits show up on the public site
+      immediately (targets `/events` and `/news` — those pages themselves
+      still need to be wired to the DB, see "Public site" below)
 
 ## Public site
 
