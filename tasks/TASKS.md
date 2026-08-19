@@ -7,10 +7,10 @@ Update checkboxes as you go, not in a batch at the end of a session.
 
 ## Database
 
-- [ ] Provision Neon via Vercel's Storage/Marketplace tab
-- [ ] Add Drizzle schema: `admin_users`, `event_series`, `events`, `articles`
-- [ ] Run initial migration
-- [ ] `scripts/seed-events.ts` — import the 63 historical events from
+- [x] Provision Neon via Vercel's Storage/Marketplace tab
+- [x] Add Drizzle schema: `admin_users`, `event_series`, `events`, `articles`
+- [x] Run initial migration
+- [x] `scripts/seed-events.ts` — import the 63 historical events from
       `docs/site-audit.md` §3
 
 ## Admin panel
